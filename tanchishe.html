@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>贪吃蛇</title>
+</head>
+<style>
+	#sence{
+		width: 600px;
+		height: 600px;
+		border: 1px solid black;
+		background: #fff;
+		position: relative;
+		margin: 100px auto 0;
+		background: url(img/timg.jpg) no-repeat center center;
+		background-size: cover;
+	}
+	.gezi{
+		width: 29px;
+		height: 29px;
+		margin-right: 1px;
+		margin-bottom: 1px;
+		float: left;
+		/* background: #fff; */
+	}
+	.bian{
+		border: 10px solid #444;
+	}
+	.she{
+		background: url(img/snake1.png) no-repeat center center;
+		background-size: 100%;
+		transform: rotate(180deg);
+	}
+	.shiwu{
+		background: url(img/fruit2.png) no-repeat center center;
+		background-size: 100%;
+	}
+	.shetou{
+		background: url(img/snake0.png) no-repeat center center;
+		background-size: 100%;
+		transform: rotate(180deg);
+	}
+	.shewei{
+		background: url(img/snake3.png) no-repeat center center;
+		background-size: 100%;
+		transform: rotate(180deg);
+		
+	}
+	.zuo{
+		transform: rotate(0deg);	
+	}
+	.you{
+		transform: rotate(180deg);
+	}
+	.shang{
+		transform: rotate(90deg);
+
+	}
+	.xia{
+		transform: rotate(270deg);
+	}
+	#play{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: url(img/snake4.jpg) no-repeat center center;
+		/* background: 100%; */
+		/* background-size: cover; */
+		text-align: center;
+		/* line-height: 500px; */
+		font-size: 50px;
+		font-weight: bold;
+		cursor: pointer;
+		z-index: 99;
+		color: #509D7B;
+	}
+	#play:hover{
+		color: #79D089;
+	}
+	#xuan{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: #333;
+		font-size: 50px;
+		font-weight: bold;
+		display: none;
+		text-align: center;
+		line-height: 500px;
+		z-index: 99;
+		background: url(img/snake4.jpg) no-repeat center center;
+		/* background: 100%; */
+		/* background-size: cover; */
+	}
+	button{
+		font-size: 20px;
+		border: 0;
+		background: #fff;
+		width: 100px;
+		height: 50px;
+		color: #000;
+		border-radius: 10px;
+		cursor: pointer;
+	}
+	button:hover{
+		background: #999;
+		color: #000;
+	}
+	.zt{
+		position: absolute;
+		top: -80px;
+		background: #333;
+		color: #fff;
+		right: 0;
+	}
+	.ks{
+		position: absolute;
+		top: -80px;
+		background: #333;
+		color: #fff;
+		right: 0;
+		display: none;
+	}
+	.sudu{
+		position: absolute;
+		/* width: 100px; */
+		height: 50px;
+		top: -80px;
+		left: 0;
+		font-size: 20px;
+		/* text-align: center; */
+		line-height: 50px;
+	}
+	#sd{
+		width: 100px;
+		height: 25px;
+	}
+	.df{
+		position: absolute;
+		top: -80px;
+		left: 0;
+		right: 0;
+		margin-left: auto;
+		margin-right: auto;
+		width: 100px;
+		height: 50px;
+		font-size: 20px;
+		line-height: 50px;
+	}
+</style>
+<body>
+	<!-- <audio src="music/李玉刚 - 刚好遇见你.mp3" autoplay="autoplay"></audio> -->
+	<div id="sence">
+		<div id="play">play game</div>
+		<div id="xuan">
+			<button class="cw">重新开始</button>
+			<button class="bw">不想玩了</button>
+		</div>
+		<button class="zt">暂停</button>
+		<button class="ks">开始</button>
+		<div class="sudu">
+			<span>速度：</span>
+			<select name="speed" id="sd">
+				<option>1000</option>
+				<option>500</option>
+				<option>200</option>
+				<option>100</option>
+				<option>50</option>
+			</select>
+		</div>
+		<div class="df">
+			<span>得分：</span>
+			<span></span>
+		</div>
+	</div>
+
+</body>
+</html>
+<script>
+	var xuan=document.getElementById("xuan");
+	var sence=document.getElementById("sence");
+	var t;
+	var sfx="right";
+	var flag=true;
+	var fen=0;
+	var she;
+	var sw;
+	var speed=1000;
+	// 初始化：
+	// 
+	for (var i = 0; i < 20; i++) {
+		for (var j = 0; j < 20; j++) {
+			var gezi=document.createElement("div");
+			gezi.id=i+"-"+j;
+			gezi.classList.add("gezi");	
+			sence.appendChild(gezi);
+		}
+	}
+	var play=document.getElementById("play");
+	play.onclick=function(){
+		play.style.display="none";
+		she=[{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+		// console.log(she);
+		Drawshe(she);
+		sw=shiwu();
+		move();
+	}
+	var zt=document.getElementsByClassName("zt")[0];
+	var ks=document.getElementsByClassName("ks")[0];
+	var su=document.getElementById("sd");
+	su.onchange=function(){
+		speed=this.value;	
+	}
+	zt.onclick=function(){
+		zt.style.display="none";
+		ks.style.display="block";
+		clearInterval(t);
+	}
+	ks.onclick=function(){
+		ks.style.display="none";
+		zt.style.display="block";
+		t=setInterval(move1,speed);
+	}
+	var df=document.getElementsByTagName("span")[2];
+	// console.log(df);
+	df.innerHTML=fen;
+	function Drawshe(she){
+		for(var i in she){
+			let sid=she[i].x+"-"+she[i].y;
+			document.getElementById(sid).classList.add("she");
+			document.getElementById(sid).classList.remove("shetou");
+		}
+		var touid=she[she.length-1].x+"-"+she[she.length-1].y;
+		document.getElementById(touid).classList.add("shetou");
+		var weiid=she[0].x+"-"+she[0].y;
+		document.getElementById(weiid).classList.add("shewei");
+		var shetou=document.querySelector(".shetou");
+		// console.log(shetou);
+		if(sfx=="right"){
+			shetou.classList.add("you");
+			shetou.classList.remove("zuo");
+			shetou.classList.remove("shang");
+			shetou.classList.remove("xia");
+		}
+		if(sfx=="left"){
+			shetou.classList.add("zuo");
+			shetou.classList.remove("you");
+			shetou.classList.remove("shang");
+			shetou.classList.remove("xia");
+		}
+		if(sfx=="up"){
+			shetou.classList.add("shang");
+			shetou.classList.remove("you");
+			shetou.classList.remove("zuo");
+			shetou.classList.remove("xia");
+		}
+		if(sfx=="down"){
+			// console.log(1);
+			shetou.classList.add("xia");
+			shetou.classList.remove("you");
+			shetou.classList.remove("shang");
+			shetou.classList.remove("zuo");
+		}
+	}
+
+	function shiwu(){
+		do{
+			var swx=Math.floor(Math.random()*20);
+			var swy=Math.floor(Math.random()*20);
+		}while(bijiao(she,swx,swy))
+
+		document.getElementById(swx+"-"+swy).classList.add("shiwu");
+		return {x:swx,y:swy};
+	}
+	function bijiao(she,swx,swy){
+		for(var i in she){
+			if(she[i].x==swx&&she[i].y==swy){
+				return true;
+			}
+		}
+		return false;
+	}
+	function move(){
+		var oldtou=she[she.length-1].x+"-"+she[she.length-1].y;
+		t=setInterval(move1,speed);
+	}
+	
+	function move1(){
+			if(sfx=="right"){
+			var newtouX=she[she.length-1].x;
+			var newtouY=she[she.length-1].y+1;
+			}
+			if(sfx=="up"){
+				var newtouX=she[she.length-1].x-1;
+				var newtouY=she[she.length-1].y;
+			}
+			if(sfx=="down"){
+				var newtouX=she[she.length-1].x+1;
+				var newtouY=she[she.length-1].y;
+			}
+			if(sfx=="left"){
+				var newtouX=she[she.length-1].x;
+				var newtouY=she[she.length-1].y-1;
+			}
+			if(newtouX==-1|| newtouX==20 || newtouY==-1 || newtouY==20){
+				gameover();
+			}
+
+			for(var i in she){
+				if(newtouX==she[i].x && newtouY==she[i].y){
+					gameover();
+				}
+			}
+			if(newtouY==sw.y&&newtouX==sw.x){
+				document.getElementById(sw.x+"-"+sw.y).classList.remove("shiwu");
+				sw=shiwu();
+				fen++;
+				df.innerHTML=fen;
+
+			}else{
+				var weiba=she.shift();
+				document.getElementById(weiba.x+"-"+weiba.y).classList.remove("she");
+				document.getElementById(weiba.x+"-"+weiba.y).classList.remove("shewei");
+			}
+
+			var newtouZB={x:newtouX,y:newtouY};
+			she.push(newtouZB);
+			Drawshe(she);
+			flag=true;
+		
+		
+	}
+
+	document.onkeydown=function(e){
+		
+		if(flag){
+			switch(e.keyCode){
+				case 37:
+				if(sfx!="right"){
+					sfx="left";
+					
+				}
+				// shetou.style.transform="rotate(0deg)";
+				flag=false;
+				break;
+				case 38:
+				if(sfx!="down"){
+					sfx="up";
+				}
+				// shetou.style.transform="rotate(90deg)";
+
+				flag=false;
+				break;
+				case 39:
+				if(sfx!="left"){
+					sfx="right";
+
+				}
+				// shetou.style.transform="rotate(180deg)";
+
+				flag=false;
+				break;
+				case 40:
+				if(sfx!="up"){
+					sfx="down";
+				}
+				// shetou.style.transform="rotate(270deg)";
+
+				flag=false;
+				break;
+			}
+		}
+	}
+
+	var cw=xuan.getElementsByTagName("button")[0];
+	var bw=xuan.getElementsByTagName("button")[1];
+	function gameover(){
+		clearInterval(t);
+		for(var i in she){
+			let sid=she[i].x+"-"+she[i].y;
+			document.getElementById(sid).classList.add("she");
+			document.getElementById(sid).classList.remove("shetou");
+			document.getElementById(sid).classList.remove("shewei");
+		}
+		document.getElementById(sw.x+"-"+sw.y).classList.remove("shiwu");
+		xuan.style.display="block";
+	}
+
+	cw.onclick=function(){
+		location.reload();
+	}
+	bw.onclick=function(){
+		window.close();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// var sence=document.getElementById("sence");
+	// var t;
+	// var sfx="right";
+	// var fen=0;
+	// var flag=true;
+	// for (var i = 0; i < 20; i++) {
+	// 	for (var j = 0; j < 20; j++) {
+	// 		var gezi=document.createElement("div");
+	// 		gezi.classList.add("gezi");
+	// 		gezi.id=i+"-"+j;
+	// 		sence.appendChild(gezi);
+	// 	}
+	// }
+	// var she=[{x:0,y:0},
+	// 		{x:0,y:1},
+	// 		{x:0,y:2}];
+	// console.log(she);
+	// drawShe(she);
+	// move();
+
+	// var sw=fangfoot();
+	// function drawShe(she){
+	// 	for(var i in she){
+	// 		let id=she[i].x+"-"+she[i].y;
+	// 		document.getElementById(id).classList.add("she");
+	// 	}
+	// }
+	// function fangfoot(){	
+	// 	// 
+	// 	// for(var i in she){
+	// 	// 	while(she[i].x==fx&&she[i].x==fx){
+	// 	// 		var fx=Math.floor(Math.random()*20);
+	// 	// 		var fy=Math.floor(Math.random()*20);
+	// 	// 	}
+	// 	// }
+	// 	do{
+	// 		var fx=Math.floor(Math.random()*20);
+	// 		var fy=Math.floor(Math.random()*20);
+
+	// 	}while(check(she,fx,fy))
+	// 	var fid=fx+"-"+fy;
+	// 	document.getElementById(fid).classList.add("shiwu");
+	// 	return {x:fx,y:fy};
+	// }
+	// function check(she,fx,fy){
+	// 	for(var i in she){
+	// 		if(she[i].x==fx&&she[i].x==fx){
+	// 			return true;
+	// 		}
+	// 	}
+	// 	return false;
+	// }
+	// function move(){
+
+	// 	var oldtou=she[she.length-1].x+"-"+she[she.length-1].y;
+	// 	t=setInterval(function(){
+
+	// 		// 获取新头的坐标
+	// 		if(sfx=="right"){
+	// 			var newtouX=she[she.length-1].x;
+	// 			var newtouY=she[she.length-1].y+1;
+	// 		}
+	// 		if(sfx=="left"){
+	// 			var newtouX=she[she.length-1].x;
+	// 			var newtouY=she[she.length-1].y-1;
+	// 		}
+	// 		if(sfx=="up"){
+	// 			var newtouX=she[she.length-1].x-1;
+	// 			var newtouY=she[she.length-1].y;
+	// 		}
+	// 		if(sfx=="down"){
+	// 			var newtouX=she[she.length-1].x+1;
+	// 			var newtouY=she[she.length-1].y;
+	// 		}
+	// 		if(newtouX==-1|| newtouX==20 || newtouY==-1 || newtouY==20){
+	// 			gameover();
+	// 		}
+
+	// 		for(var i in she){
+	// 			if(newtouX==she[i].x && newtouY==she[i].y){
+	// 				gameover();
+	// 			}
+	// 		}
+	// 		if(newtouX==sw.x&&newtouY==sw.y){
+	// 			document.getElementById(sw.x+"-"+sw.y).classList.remove("shiwu");
+	// 			sw=fangfoot();
+	// 			fen++;
+	// 		}else{
+	// 			var weiba=she.shift();
+	// 			document.getElementById(weiba.x+"-"+weiba.y).classList.remove("she");
+	// 		}
+			
+	// 		// 页面走一步
+	// 		var newtou=newtouX+"-"+newtouY;
+	// 		document.getElementById(newtou).classList.add("she");
+
+
+	// 		// 数组中走一步
+	// 		var newtouZB={x:newtouX,y:newtouY};
+	// 		she.push(newtouZB);
+
+	// 		flag=true;
+
+	// 	},100);
+	// }
+
+	// document.onkeydown=function(e){
+	// 	if(flag){
+	// 		switch(e.keyCode){
+	// 			case 37:
+	// 			if(sfx!="right"){
+	// 				sfx="left";
+	// 			}
+	// 			flag=false;
+	// 			break;
+	// 			case 38:
+	// 			if(sfx!="down"){
+	// 				sfx="up";
+	// 			}
+	// 			flag=false;
+	// 			break;
+	// 			case 39:
+	// 			if(sfx!="left"){
+	// 				sfx="right";
+	// 			}
+	// 			flag=false;
+	// 			break;
+	// 			case 40:
+	// 			if(sfx!="up"){
+	// 				sfx="down";
+	// 			}
+	// 			flag=false;
+	// 			break;
+	// 		}
+	// 	}
+	// }
+
+
+	// function gameover(){
+	// 	clearInterval(t);
+	// 	var flag=confirm("重新开始吗？得分"+fen+"")
+	// 	if(flag){
+	// 		location.reload();
+	// 	}
+	// }
+</script>
